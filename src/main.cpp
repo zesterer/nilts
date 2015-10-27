@@ -44,9 +44,9 @@ void loadAt(glm::ivec3 pos, LibVolume::Engine::VoxelTerrain& terrain)
 
 				voxel->density = density;
 
-				if (loc.z < 28.0f)
+				if (loc.z + caves.x * 4.0f < 28.0f)
 					voxel->type = 2;
-				else if (loc.z < 30.0f)
+				else if (loc.z + caves.y * 4.0f < 30.0f)
 					voxel->type = 3;
 				else if (loc.z < 37.0f)
 					voxel->type = 1;
@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
 	LibVolume::Render::Structures::Light sun(LibVolume::Render::Structures::LightType::Directional, glm::vec3(0.8, 0.25, -1.0), glm::vec3(3.0, 3.0, 3.9) * 0.4f, 0.2);
 	realm.addLight(sun);
 
-	LibVolume::Engine::VoxelTerrain terrain(glm::ivec3(32, 32, 32), LibVolume::Engine::MeshingAlgorithm::MarchingCubes, false);
+	LibVolume::Engine::VoxelTerrain terrain(glm::ivec3(32, 32, 32), LibVolume::Engine::MeshingAlgorithm::MarchingCubes, false, true);
 
 	realm.addObject(terrain);
 
