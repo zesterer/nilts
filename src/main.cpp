@@ -73,29 +73,41 @@ int main(int argc, char* argv[])
 
 	realm.background_colour = glm::vec3(4.0, 3.0, 8.0) * 0.2f;
 
-	realm.camera.state.position = glm::vec3(-20.0, 0.0, 32.0);
+	//Move a kilometre out
+	realm.camera.state.position = glm::vec3(1000.0, 1000.0, 64.0);
 
 	LibVolume::Render::Structures::Light sun(LibVolume::Render::Structures::LightType::Directional, glm::vec3(0.8, 0.25, -1.0), glm::vec3(3.0, 3.0, 3.9) * 0.4f, 0.2);
 	realm.addLight(sun);
 
-	LibVolume::Engine::VoxelTerrain terrain(glm::ivec3(32, 32, 32), LibVolume::Engine::MeshingAlgorithm::MarchingCubes, true);
+	LibVolume::Engine::VoxelTerrain terrain(glm::ivec3(32, 32, 32), LibVolume::Engine::MeshingAlgorithm::MarchingCubes, false);
 
 	realm.addObject(terrain);
 
 	while (window.tick() == false)
 	{
+		glm::f64vec3 new_camera_position = realm.camera.state.position;
+
 		if (window.event_manager.keyboard_state.key_down)
-			realm.camera.state.position += (glm::f64vec3(0.0, 0.0, 3.0) * 0.05) * realm.camera.state.orientation;
+			new_camera_position += (glm::f64vec3(0.0, 0.0, 3.0) * 0.05) * realm.camera.state.orientation;
 		if (window.event_manager.keyboard_state.key_right)
-			realm.camera.state.position += (glm::f64vec3(3.0, 0.0, 0.0) * 0.05) * realm.camera.state.orientation;
+			new_camera_position += (glm::f64vec3(3.0, 0.0, 0.0) * 0.05) * realm.camera.state.orientation;
 		if (window.event_manager.keyboard_state.key_left)
-			realm.camera.state.position += (glm::f64vec3(-3.0, 0.0, 0.0) * 0.05) * realm.camera.state.orientation;
+			new_camera_position += (glm::f64vec3(-3.0, 0.0, 0.0) * 0.05) * realm.camera.state.orientation;
 		if (window.event_manager.keyboard_state.key_up)
-			realm.camera.state.position += (glm::f64vec3(0.0, 0.0, -3.0) * 0.05) * realm.camera.state.orientation;
+			new_camera_position += (glm::f64vec3(0.0, 0.0, -3.0) * 0.05) * realm.camera.state.orientation;
 		if (window.event_manager.keyboard_state.key_space)
-			realm.camera.state.position += (glm::f64vec3(0.0, 3.0, 0.0) * 0.05) * realm.camera.state.orientation;
+			new_camera_position += (glm::f64vec3(0.0, 3.0, 0.0) * 0.05) * realm.camera.state.orientation;
 		if (window.event_manager.keyboard_state.key_shift)
-			realm.camera.state.position += (glm::f64vec3(0.0, -3.0, 0.0) * 0.05) * realm.camera.state.orientation;
+			new_camera_position += (glm::f64vec3(0.0, -3.0, 0.0) * 0.05) * realm.camera.state.orientation;
+
+		//Stop the camera moving if it's going to go inside the terrain
+		if (terrain.existsAt((glm::vec3)(new_camera_position / 32.0)))
+		{
+			if (terrain.getVoxelAt((glm::vec3)new_camera_position)->density < 0.5)
+				realm.camera.state.position = new_camera_position;
+		}
+		else
+			realm.camera.state.position = new_camera_position;
 
 		if (window.event_manager.keyboard_state.key_a)
 			realm.camera.state.orientation = glm::f64quat(glm::vec3(0.0, -0.03, 0.0)) * realm.camera.state.orientation;
@@ -110,11 +122,11 @@ int main(int argc, char* argv[])
 		if (window.event_manager.keyboard_state.key_e)
 			realm.camera.state.orientation = glm::f64quat(glm::vec3(0.0, 0.0, 0.03)) * realm.camera.state.orientation;
 
-		for (int x = -2; x < 2; x ++)
+		for (int x = -2; x < 3; x ++)
 		{
-			for (int y = -2; y < 2; y ++)
+			for (int y = -2; y < 3; y ++)
 			{
-				for (int z = 0; z < 2; z ++)
+				for (int z = 0; z < 3; z ++)
 				{
 					loadAt(glm::ivec3(x, y, z) + glm::ivec3(realm.camera.state.position.x, realm.camera.state.position.y, 0) / 32, terrain);
 					//terrain.getAt(glm::ivec3(x, y, z))->extract(LibVolume::Engine::MeshingAlgorithm::MarchingCubes);
